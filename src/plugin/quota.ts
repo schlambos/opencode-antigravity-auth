@@ -109,15 +109,20 @@ function parseResetTime(resetTime?: string): number | null {
 
 function classifyQuotaGroup(modelName: string, displayName?: string): QuotaGroup | null {
   const combined = `${modelName} ${displayName ?? ""}`.toLowerCase();
+  
+  // Claude variants always route to the Claude quota group
   if (combined.includes("claude")) {
     return "claude";
   }
-  const isGemini3 = combined.includes("gemini-3") || combined.includes("gemini 3");
-  if (!isGemini3) {
-    return null;
+
+  // All Gemini family models route to flash/pro buckets
+  if (combined.includes("gemini")) {
+    const family = getModelFamily(modelName);
+    return family === "gemini-flash" ? "gemini-flash" : "gemini-pro";
   }
-  const family = getModelFamily(modelName);
-  return family === "gemini-flash" ? "gemini-flash" : "gemini-pro";
+
+  // Conservative fallback: bucket everything else (gpt-oss-*, future providers) into gemini-pro
+  return "gemini-pro";
 }
 
 function aggregateQuota(models?: Record<string, FetchAvailableModelEntry>): QuotaSummary {

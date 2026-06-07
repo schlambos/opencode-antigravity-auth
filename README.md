@@ -10,10 +10,11 @@ Enable Opencode to authenticate against **Antigravity** (Google's IDE) via OAuth
 
 ## What You Get
 
-- **Claude Opus 4.6, Sonnet 4.6** and **Gemini 3.1 Pro/Flash** via Google OAuth
+- **Claude Opus 4.6, Sonnet 4.6**, **Gemini 3.1 Pro/Flash**, and **GPT-OSS 120B** via Google OAuth
 - **Multi-account support** — add multiple Google accounts, auto-rotates when rate-limited
 - **Dual quota system** — access both Antigravity and Gemini CLI quotas from one plugin
 - **Thinking models** — extended thinking for Claude and Gemini 3 with configurable budgets
+- **Robust Tool Schemas** — automatically cleans up strict JSON schemas to prevent proxy crashes on unknown models
 - **Google Search grounding** — enable web search for Gemini models (auto or always-on)
 - **Auto-recovery** — handles session errors and tool failures automatically
 - **Plugin compatible** — works alongside other OpenCode plugins (oh-my-opencode, dcp, etc.)
@@ -117,6 +118,7 @@ opencode run "Hello" --model=google/antigravity-claude-opus-4-6-thinking --varia
 | `antigravity-gemini-3-flash` | minimal, low, medium, high | Gemini 3 Flash with thinking |
 | `antigravity-claude-sonnet-4-6` | — | Claude Sonnet 4.6 |
 | `antigravity-claude-opus-4-6-thinking` | low, max | Claude Opus 4.6 with extended thinking |
+| `antigravity-gpt-oss-120b-medium` | — | GPT-OSS 120B (Medium) |
 
 **Gemini CLI quota** (separate from Antigravity; used when `cli_first` is true or as fallback):
 
@@ -197,6 +199,11 @@ Add this to your `~/.config/opencode/opencode.json`:
             "low": { "thinkingConfig": { "thinkingBudget": 8192 } },
             "max": { "thinkingConfig": { "thinkingBudget": 32768 } }
           }
+        },
+        "antigravity-gpt-oss-120b-medium": {
+          "name": "GPT-OSS 120B (Medium) (Antigravity)",
+          "limit": { "context": 131072, "output": 32768 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         },
         "gemini-2.5-flash": {
           "name": "Gemini 2.5 Flash (Gemini CLI)",

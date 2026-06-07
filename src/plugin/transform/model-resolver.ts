@@ -268,6 +268,11 @@ export function resolveModelWithTier(requestedModel: string, options: ModelResol
 
 /**
  * Gets the model family for routing decisions.
+ *
+ * Returns one of three families:
+ * - "claude"       → any Claude variant
+ * - "gemini-flash" → any Gemini Flash variant
+ * - "gemini-pro"   → conservative default for everything else (e.g. gpt-oss)
  */
 export function getModelFamily(model: string): "claude" | "gemini-flash" | "gemini-pro" {
   const lower = model.toLowerCase();

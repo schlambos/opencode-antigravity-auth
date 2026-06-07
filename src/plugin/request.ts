@@ -1275,6 +1275,27 @@ export function prepareAntigravityRequest(
             }
             requestPayload.tools = finalTools.concat(passthroughTools);
           } else {
+            for (const tool of requestPayload.tools as any[]) {
+                if (Array.isArray(tool.functionDeclarations)) {
+                    for (const decl of tool.functionDeclarations) {
+                        if (decl.parameters && typeof decl.parameters === "object") {
+                            const cleaned = cleanJSONSchemaForAntigravity(decl.parameters);
+                            if (cleaned) decl.parameters = cleaned;
+                        }
+                    }
+                } else {
+                    const schema = tool?.function?.parameters || tool?.function?.input_schema || tool?.parameters || tool?.input_schema;
+                    if (schema && typeof schema === "object") {
+                        const cleaned = cleanJSONSchemaForAntigravity(schema);
+                        if (cleaned) {
+                            if (tool.function && tool.function.parameters) tool.function.parameters = cleaned;
+                            if (tool.function && tool.function.input_schema) tool.function.input_schema = cleaned;
+                            if (tool.parameters) tool.parameters = cleaned;
+                            if (tool.input_schema) tool.input_schema = cleaned;
+                        }
+                    }
+                }
+            }
             // Gemini-specific tool normalization and feature injection
             const geminiResult = applyGeminiTransforms(requestPayload, {
               model: effectiveModel,
@@ -1353,7 +1374,7 @@ export function prepareAntigravityRequest(
         // For Claude models, ensure functionCall/tool use parts carry IDs (required by Anthropic).
         // We use a two-pass approach: first collect all functionCalls and assign IDs,
         // then match functionResponses to their corresponding calls using a FIFO queue per function name.
-        if (isClaude && Array.isArray(requestPayload.contents)) {
+        if ((isClaude || effectiveModel.toLowerCase().includes("gpt-oss")) && Array.isArray(requestPayload.contents)) {
           let toolCallCounter = 0;
           // Track pending call IDs per function name as a FIFO queue
           const pendingCallIdsByName = new Map<string, string[]>();
