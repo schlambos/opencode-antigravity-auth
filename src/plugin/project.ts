@@ -13,9 +13,21 @@ const log = createLogger("project");
 const projectContextResultCache = new Map<string, ProjectContextResult>();
 const projectContextPendingCache = new Map<string, Promise<ProjectContextResult>>();
 
+// loadCodeAssist's body metadata.platform is a typed Cloud Code enum, NOT the
+// free-form "MACOS"/"WINDOWS" string used in the Client-Metadata header. Sending
+// "MACOS" returns HTTP 400 ("Invalid value at 'metadata.platform'"), so managed
+// project resolution silently failed on macOS and never persisted a projectId.
+function codeAssistPlatform(): string {
+  if (process.platform === "win32") return "WINDOWS_AMD64";
+  if (process.platform === "darwin") {
+    return process.arch === "arm64" ? "DARWIN_ARM64" : "DARWIN_AMD64";
+  }
+  return process.arch === "arm64" ? "LINUX_ARM64" : "LINUX_AMD64";
+}
+
 const CODE_ASSIST_METADATA = {
   ideType: "ANTIGRAVITY",
-  platform: process.platform === "win32" ? "WINDOWS" : "MACOS",
+  platform: codeAssistPlatform(),
   pluginType: "GEMINI",
 } as const;
 
